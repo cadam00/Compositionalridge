@@ -1,0 +1,105 @@
+\name{Ridge regression for compositional data}
+\alias{zadr.ridge}
+\alias{dr.ridge}
+\alias{kld.ridge}
+\alias{mziln.ridge}
+
+\title{
+Ridge regression for compositional data
+}
+
+\description{
+Ridge regression for compositional data.
+}
+
+\usage{
+zadr.ridge(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6, maxit = 100)
+dr.ridge(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6, maxit = 100)
+kld.ridge(y, x, lambda = NULL, nlambda = 100, xnew = NULL)
+mziln.ridge(y, x, lambda = NULL, nlambda = 100, xnew = NULL)
+}
+
+\arguments{
+\item{y}{
+A matrix with the compositional data (dependent variable).
+Only for the Dirichlet regression, zeros are not allowed.
+}
+\item{x}{
+The predictor variable(s), they can only be continnuous variables.
+}
+\item{lambda}{
+A vector with a sequence of the ridge \eqn{\lambda} values. If you do not know it leave it NULL
+and the function will compute it internally.
+}
+\item{nlambda}{
+The number of \eqn{\lambda} values to compute.
+}
+\item{xnew}{
+If you have new data whose response values you want to compute, pass them here.
+}
+\item{tol}{
+The tolerance value to terminate the Fisher scoring algorithm.
+}
+\item{maxit}{
+The maximum number of iterations the Fisher scoring algorithm will perform.
+}
+}
+
+\details{
+Ridge regression using the Dirichlet regression, the zero adjuster Dirichlet regression,
+the Kullback-Leilber divergence regression or the multivariate zero inflated logistic
+normal regression.
+}
+
+\value{
+A list including:
+\item{runtime}{
+The runtime of the ridge regression model.
+}
+\item{info}{
+A matrix with two or three columns containing the lambda, the penalized log-likelihood (for dr and zadr),
+and the Kullback-Leibler divergence between the observed and the fitted compositions.
+}
+\item{be}{
+A list with the ridge beta coefficients. Note that for the mziln.ridge() the additive log-ratio transformation
+is implied as well, but the reference category is the last component, unlike all other regression models
+that imply the first component. So, be careful with the interpretation. Also, for the kld.ridge() the
+coefficients are based on the inverse of the centered log-ratio transformation.
+}
+\item{est}{
+A list with the ridge estimated compositions, if xnew is not NULL.
+}
+}
+
+\references{
+Li Z., Lee K., Karagas M. R., Madan J. C., Hoen A. G., O'Malley A. J. and Li H. (2018).
+Conditional regression based on a multivariate zero-inflated logistic-normal model for
+microbiome relative abundance data.
+Statistics in Biosciences, 10(3): 587--608.
+}
+
+\author{
+Michail Tsagris.
+
+R implementation and documentation: Michail Tsagris \email{mtsagris@uoc.gr}.
+}
+
+%\note{
+%%  ~~further notes~~
+%}
+
+\seealso{
+\code{\link{cv.zadrridge}, \link{areg.ridge}
+}
+}
+
+\examples{
+x <- matrix( rnorm(150 * 10), ncol = 10 )
+y <- as.matrix(iris[, 1:3])
+y <- y / rowSums(y)
+ind <- sample(150, 10)
+for ( k in ind )  y[k, sample(3, 1)] <- 0
+y <- y / rowSums(y)
+mod <- kld.ridge(y, x)
+}
+

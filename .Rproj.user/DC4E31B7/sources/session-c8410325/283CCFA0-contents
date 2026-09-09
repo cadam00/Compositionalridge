@@ -1,0 +1,10 @@
+#useDynLib(MXM, .registration = TRUE)
+
+importFrom("Compositional", alfa, helm, makefolds)
+importFrom("glmnet", glmnet)
+importFrom("minpack.lm", nls.lm)
+importFrom("Rfast", rowsums)
+importFrom("stats", predict)
+
+exportPattern("^[[:alpha:]]+")
+exportPattern("^[^\\.]")

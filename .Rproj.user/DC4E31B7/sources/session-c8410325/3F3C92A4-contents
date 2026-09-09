@@ -1,0 +1,31 @@
+cv.drridge <- function(y, x, lambda = NULL, nlambda = 100, tol = 1e-06, maxit = 100,
+                         folds = NULL, nfolds = 10, seed = NULL) {
+
+  n <- dim(x)[1]
+  if ( is.null(folds) )  folds <- Compositional::makefolds(1:n, nfolds = nfolds, seed = seed, stratified = FALSE)
+  nfolds <- length(folds)
+  lamkld <- list()
+
+  mod <- dr.ridge(y = y, x = x, lambda = lambda, nlambda = nlambda, tol = tol, maxit = maxit)
+  lambda <- mod$info[, 1]
+  nlambda <- length(lambda)
+  kld <- matrix(nrow = nfolds, ncol = nlambda )
+
+  for ( k in 1:nfolds ) {
+    xtest <- x[ folds[[ k ]], ]
+    xtrain <- x[ -folds[[ k ]], ]
+    ytest <- y[ folds[[ k ]], ]
+    ytrain <- y[ -folds[[ k ]], ]
+    est <- dr.ridge(y = ytrain, x = xtrain, lambda = lambda, nlambda = nlambda, xnew = xtest, tol = tol, maxit = maxit)$est
+    for ( j in 1:length(est) ) {
+      kl <- ytest * log(ytest / est[[ j ]] )
+      kl[is.infinite(kl)] <- NA
+      kld[k, j] <- sum(kl, na.rm = TRUE)
+    }
+  }
+  kld <- cbind( lambda, colMeans(kld, na.rm = TRUE) )
+  colnames(kld) <- c("lambda", "KLD")
+  lopt <- which.min(kld[, 2])
+  list(kld = kld, lambda.opt = lambda[lopt], be = mod$be[[ lopt ]] )
+}
+
