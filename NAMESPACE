@@ -1,10 +1,12 @@
-#useDynLib(MXM, .registration = TRUE)
+useDynLib(Compositionalridge, .registration=TRUE)
 
+importFrom(Rcpp, evalCpp)
 importFrom("Compositional", alfa, helm, makefolds)
 importFrom("glmnet", glmnet)
 importFrom("minpack.lm", nls.lm)
 importFrom("Rfast", rowsums)
 importFrom("stats", predict, coef)
 
-exportPattern("^[[:alpha:]]+")
-exportPattern("^[^\\.]")
+export("areg.ridge", "cv.aregridge", "cv.drridge", "cv.kldridge",
+       "cv.mzilnridge", "cv.zadrridge", "dr.ridge", "kld.ridge", "mziln.ridge",
+       "zadr.ridge")
