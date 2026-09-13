@@ -38,7 +38,7 @@ zadr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e
   beta <- ini[[ 1 ]][, -1] - ini[[ 1 ]][, 1]
 
   for ( vim in 1:nlambda ) {
-    mod <- zpath(beta, phi, logy, y, x, txi, Pidx, lambda[vim], n, D, p, K, pen, maxit, tol)
+    mod <- zpath(beta, 1.0, logy, y, x, txi, Pidx, lambda[vim], n, D, p, K, pen, maxit, tol)
     beta <- mod$be
     colnames(beta) <- paste0("Y", 2:D)
     rownames(beta) <- nam
