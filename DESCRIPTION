@@ -3,13 +3,15 @@ Type: Package
 Title: Ridge Regression for Compositional Data
 Version: 1.0
 Date: 2026-09-09
-Authors@R: person("Michail", "Tsagris", role = c("aut", "cre"), email = "mtsagris@uoc.gr")
-Author: Michail Tsagris [aut, cre]
+Authors@R: c(person("Michail", "Tsagris", role = c("aut", "cre"), email = "mtsagris@uoc.gr"),
+             person("Christos", "Adam", role = c("aut"),
+             email = "pada4m4@gmail.com",
+             comment = c(ORCID = "0009-0003-3244-7034")))
 Maintainer: Michail Tsagris <mtsagris@uoc.gr>
 Depends: R (>= 4.0)
-Imports: Compositional, glmnet, minpack.lm, Rfast, stats
+Imports: Compositional, glmnet, minpack.lm, Rfast, stats, Rcpp
 Suggests: Rfast2
 Description: A multivariate zero inflated logistic normal regression model is implemented for compositional data with zero values present. The relevant paper is Li Z., Lee K., Karagas M. R., Madan J. C., Hoen A. G., O'Malley A. J. and Li H. (2018). "Conditional regression based on a multivariate zero-inflated logistic-normal model for microbiome relative abundance data", <doi:10.1007/s12561-018-9219-2>.
 License: GPL (>= 2)
-
-
+LinkingTo: Rcpp, RcppArmadillo
+Encoding: UTF-8

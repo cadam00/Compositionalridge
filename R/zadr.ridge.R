@@ -38,7 +38,7 @@ zadr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e
   beta <- ini[[ 1 ]][, -1] - ini[[ 1 ]][, 1]
 
   for ( vim in 1:nlambda ) {
-    mod <- .zpath(beta, phi, logy, y, x, txi, Pidx, lambda[vim], n, D, p, K, pen, maxit, tol)
+    mod <- zpath(beta, phi, logy, y, x, txi, Pidx, lambda[vim], n, D, p, K, pen, maxit, tol)
     beta <- mod$be
     colnames(beta) <- paste0("Y", 2:D)
     rownames(beta) <- nam
@@ -73,64 +73,64 @@ zadr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e
 
 
 
-.zpath <- function(beta, phi, logy, y, x, txi, Pidx, lambda, n, D, p, K, pen, maxit, tol) {
-
-  lambda_vec <- lambda * rep(pen, p)
-  lamI <- diag( lambda_vec, nrow = length(lambda_vec) )
-  phi <- 1.0
-  loglik_old <-  -Inf
-
-  for ( iter in 1:maxit ) {
-    eta <- x %*% beta
-    exp_eta <- exp(eta)
-    mu <- cbind(1, exp_eta) / ( 1 + Rfast::rowsums(exp_eta) )
-    psi1_phi <- trigamma(phi)
-    loglik <- S_vec <- I_mat <- S_phi <- H_phi <- 0
-
-    for ( i in 1:n ) {
-      Pi <- Pidx[[ i ]]
-      x_i <- x[i, ]
-      mu_i <- mu[i, ]
-      Mi <- sum( mu_i[Pi] )
-      mu2 <- mu_i[Pi] / Mi
-      alpha2 <- phi * mu2
-      y_log <- logy[i, Pi]
-
-      loglik <- loglik + lgamma(phi) - sum( lgamma(alpha2) ) + sum( (alpha2 - 1) * y_log )
-      S_phi <- S_phi + digamma(phi) - sum( mu2 * digamma(alpha2) ) + sum( mu2 * y_log )
-      H_phi <- H_phi + trigamma(phi) - sum( mu2^2 * trigamma(alpha2) )
-      J <- matrix(0, nrow = D, ncol = p)
-      mu_sub <- mu_i[2:D]
-      for ( d in 1:D ) {
-        for ( k in 1:p ) {
-          J[d, k] <- mu_i[d] * ( ( d == (k + 1) ) - mu_sub[k] )
-        }
-      }
-      Jp <- J[Pi, , drop = FALSE]
-      Jsum <- Rfast::colsums(Jp)
-      J2 <- ( Jp - outer(mu2, Jsum) ) / Mi
-      h_i <- y_log - digamma(alpha2)
-      psi1_alpha2 <- trigamma(alpha2)
-      C <- diag( psi1_alpha2, nrow = length(Pi) ) - psi1_phi
-      JtCJ <- crossprod(J2, C) %*% J2
-      Jt_h <- crossprod(J2, h_i)
-      S_vec <- S_vec + as.vector( phi * tcrossprod(x_i, Jt_h) )
-      I_mat <- I_mat + phi^2 * kronecker(JtCJ, txi[[ i ]] )
-    }  ##  end for (i in 1:n)
-
-    loglik_pen <- loglik - 0.5 * lambda * sum( beta^2 )
-    beta_vec <- as.vector(beta)
-    S_vec_pen <- S_vec - lambda_vec * beta_vec
-    I_mat_pen <- I_mat + lamI
-
-    if ( abs(loglik_pen - loglik_old) < tol ) break
-
-    beta_vec_new <- beta_vec + solve(I_mat_pen, S_vec_pen)
-    beta <- matrix(beta_vec_new, nrow = K, ncol = p)
-    phi_new <- phi - S_phi / H_phi
-    if ( phi_new <= 0 )  phi_new <- 1e-4
-    phi <- phi_new
-    loglik_old <- loglik_pen
-  }
-  list(be = beta, phi = phi, loglik_pen = loglik_pen)
-}
+# .zpath <- function(beta, phi, logy, y, x, txi, Pidx, lambda, n, D, p, K, pen, maxit, tol) {
+# 
+#   lambda_vec <- lambda * rep(pen, p)
+#   lamI <- diag( lambda_vec, nrow = length(lambda_vec) )
+#   phi <- 1.0
+#   loglik_old <-  -Inf
+# 
+#   for ( iter in 1:maxit ) {
+#     eta <- x %*% beta
+#     exp_eta <- exp(eta)
+#     mu <- cbind(1, exp_eta) / ( 1 + Rfast::rowsums(exp_eta) )
+#     psi1_phi <- trigamma(phi)
+#     loglik <- S_vec <- I_mat <- S_phi <- H_phi <- 0
+# 
+#     for ( i in 1:n ) {
+#       Pi <- Pidx[[ i ]]
+#       x_i <- x[i, ]
+#       mu_i <- mu[i, ]
+#       Mi <- sum( mu_i[Pi] )
+#       mu2 <- mu_i[Pi] / Mi
+#       alpha2 <- phi * mu2
+#       y_log <- logy[i, Pi]
+# 
+#       loglik <- loglik + lgamma(phi) - sum( lgamma(alpha2) ) + sum( (alpha2 - 1) * y_log )
+#       S_phi <- S_phi + digamma(phi) - sum( mu2 * digamma(alpha2) ) + sum( mu2 * y_log )
+#       H_phi <- H_phi + trigamma(phi) - sum( mu2^2 * trigamma(alpha2) )
+#       J <- matrix(0, nrow = D, ncol = p)
+#       mu_sub <- mu_i[2:D]
+#       for ( d in 1:D ) {
+#         for ( k in 1:p ) {
+#           J[d, k] <- mu_i[d] * ( ( d == (k + 1) ) - mu_sub[k] )
+#         }
+#       }
+#       Jp <- J[Pi, , drop = FALSE]
+#       Jsum <- Rfast::colsums(Jp)
+#       J2 <- ( Jp - outer(mu2, Jsum) ) / Mi
+#       h_i <- y_log - digamma(alpha2)
+#       psi1_alpha2 <- trigamma(alpha2)
+#       C <- diag( psi1_alpha2, nrow = length(Pi) ) - psi1_phi
+#       JtCJ <- crossprod(J2, C) %*% J2
+#       Jt_h <- crossprod(J2, h_i)
+#       S_vec <- S_vec + as.vector( phi * tcrossprod(x_i, Jt_h) )
+#       I_mat <- I_mat + phi^2 * kronecker(JtCJ, txi[[ i ]] )
+#     }  ##  end for (i in 1:n)
+# 
+#     loglik_pen <- loglik - 0.5 * lambda * sum( beta^2 )
+#     beta_vec <- as.vector(beta)
+#     S_vec_pen <- S_vec - lambda_vec * beta_vec
+#     I_mat_pen <- I_mat + lamI
+# 
+#     if ( abs(loglik_pen - loglik_old) < tol ) break
+# 
+#     beta_vec_new <- beta_vec + solve(I_mat_pen, S_vec_pen)
+#     beta <- matrix(beta_vec_new, nrow = K, ncol = p)
+#     phi_new <- phi - S_phi / H_phi
+#     if ( phi_new <= 0 )  phi_new <- 1e-4
+#     phi <- phi_new
+#     loglik_old <- loglik_pen
+#   }
+#   list(be = beta, phi = phi, loglik_pen = loglik_pen)
+# }
