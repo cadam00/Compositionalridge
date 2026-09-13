@@ -14,4 +14,3 @@ Description: A few ridge regression models for compositional data with zero valu
 License: GPL (>= 2)
 LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
-Config/roxygen2/version: 8.1.0
