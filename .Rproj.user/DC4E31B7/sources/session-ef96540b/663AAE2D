@@ -3,7 +3,7 @@
     "path": "~/GitHub/Compositionalridge/R/zadr.ridge.R",
     "project_path": "R/zadr.ridge.R",
     "type": "r_source",
-    "hash": "766908035",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1789300886813.0,
@@ -12,8 +12,8 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "47,3",
-        "scrollLine": "29"
+        "cursorPosition": "0,83",
+        "scrollLine": "0"
     },
     "folds": "",
     "lastKnownWriteTime": 1789299796,
