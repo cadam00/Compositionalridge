@@ -2,7 +2,7 @@ kld.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL) {
 
   runtime <- proc.time()
   ridge <- glmnet::glmnet(x, y, alpha = 0, nlambda = nlambda, lambda = lambda, family = "multinomial",
-                        type.multinomial = "ungrouped", standardize = FALSE)
+                        type.multinomial = "ungrouped")
   lambda <- ridge$lambda
   nlambda <- length(lambda)
 
