@@ -1,5 +1,5 @@
 dr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6, maxit = 100) {
-
+  
   runtime <- proc.time()
   n <- dim(y)[1]   ;  D <- dim(y)[2]  ;  p <- D - 1
   x <- as.matrix(x)
@@ -21,12 +21,13 @@ dr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6
   lambda <- mod$info[, 1]
   nlambda <- length(lambda)
   ini <- mod$be
-
+  
   be <- list()   ;   loglik_pen <- phi <- numeric(nlambda)
   beta <- ini[[ 1 ]][, -1] - ini[[ 1 ]][, 1]
-
+  
   for ( vim in 1:nlambda ) {
-    mod <- .path(beta, phi, ly, y, x, txi, lambda[vim], n, D, p, K, pen, maxit, tol)
+    mod <- path(beta = beta, phi = 1.0, ly = ly, x = x, lambda = lambda[vim],
+                pen = pen, maxit = maxit, tol = tol)
     beta <- mod$be
     colnames(beta) <- paste0("Y", 2:D)
     rownames(beta) <- nam
@@ -34,7 +35,7 @@ dr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6
     phi[vim] <- mod$phi
     loglik_pen[vim] <- mod$loglik_pen
   }
-
+  
   for ( vim in 1:nlambda ) {
     beta <- be[[ vim ]]
     beta[-1, ] <- beta[-1, ] / s
@@ -55,79 +56,79 @@ dr.ridge <- function(y, x, lambda = NULL, nlambda = 100, xnew = NULL, tol = 1e-6
     }
     names(est) <- paste("lambda=",lambda,sep="")
   }
-
+  
   info <- cbind(lambda, loglik_pen, phi)
   colnames(info) <- c("lambda", "loglik", "phi")
   runtime <- proc.time() - runtime
-
+  
   list( runtime = runtime, info = info, be = be, est = est )
 }
 
 
 
-.path <- function(beta, phi, ly, y, x, txi, lambda, n, D, p, K, pen, maxit, tol) {
-  lambda_vec <- lambda * rep(pen, p)
-  lamI <- diag( lambda_vec, nrow = length(lambda_vec) )
-  phi <- 1.0
-  loglik_old <-  -Inf
-
-  for ( iter in 1:maxit ) {
-    eta <- x %*% beta
-    exp_eta <- exp(eta)
-    mu <- cbind(1, exp_eta) / ( 1 + Rfast::rowsums(exp_eta) )
-    psi1_phi <- trigamma(phi)
-    alpha <- phi * mu
-    loglik <- sum( lgamma(phi) - Rfast::rowsums( lgamma(alpha) ) + Rfast::rowsums( (alpha - 1) * ly) )
-    beta_vec <- as.vector(beta)
-    loglik_pen <- loglik - 0.5 * sum( lambda_vec * beta_vec^2 )
-
-    if ( abs(loglik_pen - loglik_old) < tol )  break
-
-    contribs <- lapply( 1:n, function(i) {
-      x_i <- x[i, ]
-      mu_i <- mu[i, ]
-      eta_i <- eta[i, ]
-      y_i <- y[i, ]
-      ly_i <- ly[i, ]
-      alpha_i <- alpha[i, ]
-
-      J <- matrix(0, nrow = D, ncol = p)
-      mu_sub <- mu_i[2:D]   # components 2..D
-      for ( d in 1:D ) {
-        for ( k in 1:p ) {
-          J[d, k] <- mu_i[d] * ( (d == (k + 1) ) - mu_sub[k] )
-        }
-      }
-
-      h_i <- ly_i - digamma(alpha_i)
-      psi1_alpha <- trigamma(alpha_i)
-      C <- diag(psi1_alpha) - psi1_phi
-      JtCJ <- crossprod(J, C) %*% J
-      Jt_h <- crossprod(J, h_i)
-      S_i <- as.vector( phi * tcrossprod(x_i, Jt_h) )
-      I_i <- phi^2 * kronecker(JtCJ, txi[[ i ]] )
-      list(S = S_i, I = I_i)
-    } )
-
-    S_vec <- Reduce(`+`, lapply(contribs, `[[`, "S"))
-    I_mat <- Reduce(`+`, lapply(contribs, `[[`, "I"))
-
-    S_vec_pen <- S_vec - lambda_vec * beta_vec
-    I_mat_pen <- I_mat + lamI
-    beta_vec_new <- beta_vec + solve(I_mat_pen, S_vec_pen)
-    beta <- matrix(beta_vec_new, nrow = K, ncol = p)
-    S_phi <- sum( digamma(phi) - Rfast::rowsums(mu * digamma(alpha)) + Rfast::rowsums(mu * ly) )
-    H_phi <- sum( trigamma(phi) - Rfast::rowsums( mu^2 * trigamma(alpha) ) )
-    phi_new <- phi - S_phi / H_phi
-    if ( phi_new <= 0 )  phi_new <- 1e-4
-    phi <- phi_new
-
-    loglik_old <- loglik_pen
-  }
-  colnames(beta) <- paste0("Y", 2:D)
-  rownames(beta) <- colnames(x)
-  list(be = beta, phi = phi, loglik_pen = loglik_pen)
-}
+# .path <- function(beta, phi, ly, y, x, txi, lambda, n, D, p, K, pen, maxit, tol) {
+#   lambda_vec <- lambda * rep(pen, p)
+#   lamI <- diag( lambda_vec, nrow = length(lambda_vec) )
+#   phi <- 1.0
+#   loglik_old <-  -Inf
+# 
+#   for ( iter in 1:maxit ) {
+#     eta <- x %*% beta
+#     exp_eta <- exp(eta)
+#     mu <- cbind(1, exp_eta) / ( 1 + Rfast::rowsums(exp_eta) )
+#     psi1_phi <- trigamma(phi)
+#     alpha <- phi * mu
+#     loglik <- sum( lgamma(phi) - Rfast::rowsums( lgamma(alpha) ) + Rfast::rowsums( (alpha - 1) * ly) )
+#     beta_vec <- as.vector(beta)
+#     loglik_pen <- loglik - 0.5 * sum( lambda_vec * beta_vec^2 )
+# 
+#     if ( abs(loglik_pen - loglik_old) < tol )  break
+# 
+#     contribs <- lapply( 1:n, function(i) {
+#       x_i <- x[i, ]
+#       mu_i <- mu[i, ]
+#       eta_i <- eta[i, ]
+#       y_i <- y[i, ]
+#       ly_i <- ly[i, ]
+#       alpha_i <- alpha[i, ]
+# 
+#       J <- matrix(0, nrow = D, ncol = p)
+#       mu_sub <- mu_i[2:D]   # components 2..D
+#       for ( d in 1:D ) {
+#         for ( k in 1:p ) {
+#           J[d, k] <- mu_i[d] * ( (d == (k + 1) ) - mu_sub[k] )
+#         }
+#       }
+# 
+#       h_i <- ly_i - digamma(alpha_i)
+#       psi1_alpha <- trigamma(alpha_i)
+#       C <- diag(psi1_alpha) - psi1_phi
+#       JtCJ <- crossprod(J, C) %*% J
+#       Jt_h <- crossprod(J, h_i)
+#       S_i <- as.vector( phi * tcrossprod(x_i, Jt_h) )
+#       I_i <- phi^2 * kronecker(JtCJ, txi[[ i ]] )
+#       list(S = S_i, I = I_i)
+#     } )
+# 
+#     S_vec <- Reduce(`+`, lapply(contribs, `[[`, "S"))
+#     I_mat <- Reduce(`+`, lapply(contribs, `[[`, "I"))
+# 
+#     S_vec_pen <- S_vec - lambda_vec * beta_vec
+#     I_mat_pen <- I_mat + lamI
+#     beta_vec_new <- beta_vec + solve(I_mat_pen, S_vec_pen)
+#     beta <- matrix(beta_vec_new, nrow = K, ncol = p)
+#     S_phi <- sum( digamma(phi) - Rfast::rowsums(mu * digamma(alpha)) + Rfast::rowsums(mu * ly) )
+#     H_phi <- sum( trigamma(phi) - Rfast::rowsums( mu^2 * trigamma(alpha) ) )
+#     phi_new <- phi - S_phi / H_phi
+#     if ( phi_new <= 0 )  phi_new <- 1e-4
+#     phi <- phi_new
+# 
+#     loglik_old <- loglik_pen
+#   }
+#   colnames(beta) <- paste0("Y", 2:D)
+#   rownames(beta) <- colnames(x)
+#   list(be = beta, phi = phi, loglik_pen = loglik_pen)
+# }
 
 
 

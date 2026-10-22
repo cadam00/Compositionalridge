@@ -11,6 +11,24 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// path
+Rcpp::List path(arma::mat beta, double phi, const arma::mat& ly, const arma::mat& x, double lambda, const arma::vec& pen, int maxit, double tol);
+RcppExport SEXP _Compositionalridge_path(SEXP betaSEXP, SEXP phiSEXP, SEXP lySEXP, SEXP xSEXP, SEXP lambdaSEXP, SEXP penSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type ly(lySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type pen(penSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(path(beta, phi, ly, x, lambda, pen, maxit, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // zpath
 Rcpp::List zpath(arma::mat beta, double phi, const arma::mat& logy, const arma::mat& y, const arma::mat& x, const Rcpp::List& txi, const Rcpp::List& Pidx, double lambda, int n, int D, int p, int K, const arma::vec& pen, int maxit, double tol);
 RcppExport SEXP _Compositionalridge_zpath(SEXP betaSEXP, SEXP phiSEXP, SEXP logySEXP, SEXP ySEXP, SEXP xSEXP, SEXP txiSEXP, SEXP PidxSEXP, SEXP lambdaSEXP, SEXP nSEXP, SEXP DSEXP, SEXP pSEXP, SEXP KSEXP, SEXP penSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
@@ -38,6 +56,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_Compositionalridge_path", (DL_FUNC) &_Compositionalridge_path, 8},
     {"_Compositionalridge_zpath", (DL_FUNC) &_Compositionalridge_zpath, 15},
     {NULL, NULL, 0}
 };

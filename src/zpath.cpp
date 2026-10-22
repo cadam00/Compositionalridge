@@ -2,12 +2,6 @@
 using namespace Rcpp;
 using namespace arma;
 
-// [[Rcpp::depends(RcppArmadillo)]]
-
-inline double digamma_cpp(double x) { return R::digamma(x); }
-inline double trigamma_cpp(double x) { return R::trigamma(x); }
-inline double lgamma_cpp(double x) { return R::lgammafn(x); }
-
 // [[Rcpp::export]]
 Rcpp::List zpath(arma::mat beta,
                  double phi,
@@ -53,7 +47,7 @@ Rcpp::List zpath(arma::mat beta,
     for (int j = 0; j < p; ++j)
       mu.col(j + 1) = exp_eta.col(j) / (1.0 + sum_exp);
     
-    double psi1_phi = trigamma_cpp(phi);
+    double psi1_phi = R::trigamma(phi);
     double loglik = 0.0;
     arma::vec S_vec(dim, fill::zeros);
     arma::mat I_mat(dim, dim, fill::zeros);
@@ -92,17 +86,17 @@ Rcpp::List zpath(arma::mat beta,
       double sum_alpha2_ylog = 0.0;
       for (int idx = 0; idx < mPi; ++idx) {
         double a2 = alpha2[idx];
-        sum_lg_alpha2   += lgamma_cpp(a2);
+        sum_lg_alpha2   += R::lgammafn(a2);
         sum_alpha2_ylog += (a2 - 1.0) * y_log[idx];
       }
-      loglik += lgamma_cpp(phi) - sum_lg_alpha2 + sum_alpha2_ylog;
+      loglik += R::lgammafn(phi) - sum_lg_alpha2 + sum_alpha2_ylog;
       
-      double S_phi_i = digamma_cpp(phi);
+      double S_phi_i = R::digamma(phi);
       double H_phi_i = psi1_phi;
       for (int idx = 0; idx < mPi; ++idx) {
         double mu2_i      = mu2[idx];
-        double dig_alpha2 = digamma_cpp(alpha2[idx]);
-        double tri_alpha2 = trigamma_cpp(alpha2[idx]);
+        double dig_alpha2 = R::digamma(alpha2[idx]);
+        double tri_alpha2 = R::trigamma(alpha2[idx]);
         S_phi_i -= mu2_i * dig_alpha2;
         S_phi_i += mu2_i * y_log[idx];
         H_phi_i -= mu2_i * mu2_i * tri_alpha2;
@@ -141,11 +135,11 @@ Rcpp::List zpath(arma::mat beta,
       // h_i, psi1_alpha2, C
       arma::vec h_i(mPi);
       for (int idx = 0; idx < mPi; ++idx)
-        h_i[idx] = y_log[idx] - digamma_cpp(alpha2[idx]);
+        h_i[idx] = y_log[idx] - R::digamma(alpha2[idx]);
       
       arma::vec psi1_alpha2(mPi);
       for (int idx = 0; idx < mPi; ++idx)
-        psi1_alpha2[idx] = trigamma_cpp(alpha2[idx]);
+        psi1_alpha2[idx] = R::trigamma(alpha2[idx]);
       
       arma::mat C(mPi, mPi);
       C.fill(-psi1_phi);
